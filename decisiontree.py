@@ -1,20 +1,25 @@
 import pickle
-
 import optuna
-from sklearn.metrics import make_scorer, roc_auc_score
-from sklearn.model_selection import cross_val_score
+import matplotlib.pyplot as plt
+from sklearn.metrics import make_scorer, roc_auc_score, plot_roc_curve, plot_confusion_matrix
+from sklearn.model_selection import cross_val_score, cross_validate
 from sklearn.tree import DecisionTreeClassifier
 
-from datareader import get_credit_card_xy, get_heart_xy
+from analysis import plot_clf_analysis
+
+TRAIN_SIZE = 0.6
+RANDOM_STATE = 42
+
+from datareader import get_credit_card_train_test, get_heart_train_test
 
 
 def objective_heart(trial):
-    x, y = get_heart_xy()
+    x, x_t, y, y_t = get_heart_train_test(train_size=TRAIN_SIZE, random_state=RANDOM_STATE)
     return objective(trial, x, y, make_scorer(roc_auc_score))
 
 
 def objective_credit_card(trial):
-    x, y = get_credit_card_xy()
+    x, x_t, y, y_t = get_credit_card_train_test(train_size=TRAIN_SIZE, random_state=RANDOM_STATE)
     return objective(trial, x, y, make_scorer(roc_auc_score))
 
 
@@ -33,7 +38,7 @@ def objective(trial, x, y, scoring=None):
                                 min_impurity_decrease=min_impurity_decrease,
                                 ccp_alpha=ccp_alpha,
                                 class_weight="balanced",
-                                random_state=42)
+                                random_state=RANDOM_STATE)
 
     score = cross_val_score(dt, x, y, n_jobs=-1, cv=5, scoring=scoring)
     return score.mean()
@@ -77,7 +82,7 @@ def load_dt_heart_model():
         min_impurity_decrease=heart_best_params["min_impurity_decrease"],
         ccp_alpha=heart_best_params["ccp_alpha"],
         class_weight="balanced",
-        random_state=42)
+        random_state=RANDOM_STATE)
 
 
 def load_dt_credit_card_model():
@@ -93,10 +98,60 @@ def load_dt_credit_card_model():
         min_impurity_decrease=heart_best_params["min_impurity_decrease"],
         ccp_alpha=heart_best_params["ccp_alpha"],
         class_weight="balanced",
-        random_state=42)
+        random_state=RANDOM_STATE)
 
 
 if __name__ == "__main__":
+    # Generate studies with optimal hyper-parameters based on training split
     # generate_dt_studies()
+
+    # Load models from optimized studies
     heart_dt, credit_card_dt = load_dt_models()
 
+    # Train optimized models on train splits
+
+    # Heart data
+    h_x_train, h_x_test, h_y_train, h_y_test = get_heart_train_test(
+        train_size=TRAIN_SIZE,
+        random_state=RANDOM_STATE)
+
+    heart_train_scores = cross_validate(
+        heart_dt,
+        h_x_train,
+        h_y_train,
+        scoring=make_scorer(roc_auc_score),
+        n_jobs=-1,
+        return_train_score=True,
+        return_estimator=True)
+
+    best_heart_dt = heart_train_scores['estimator'][heart_train_scores['test_score'].argmax()]
+
+    # Credit card data
+    cc_x_train, cc_x_test, cc_y_train, cc_y_test = get_credit_card_train_test(
+        train_size=TRAIN_SIZE,
+        random_state=RANDOM_STATE)
+
+    credit_card_train_scores = cross_validate(
+        heart_dt,
+        cc_x_train,
+        cc_y_train,
+        scoring=make_scorer(roc_auc_score),
+        n_jobs=-1,
+        return_train_score=True,
+        return_estimator=True)
+
+    best_credit_card_dt = credit_card_train_scores['estimator'][credit_card_train_scores['test_score'].argmax()]
+
+    # Score optimized models against test splits
+    plot_clf_analysis(best_heart_dt,
+                      h_x_test,
+                      h_y_test,
+                      name="Heart Disease",
+                      labels=["No Disease", "Disease"])
+    plot_clf_analysis(best_credit_card_dt,
+                      cc_x_test,
+                      cc_y_test,
+                      name="Credit Card Fraud",
+                      labels=["No Fraud", "Fraud"])
+
+    print("foobar!")
