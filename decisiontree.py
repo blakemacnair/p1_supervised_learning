@@ -6,21 +6,9 @@ from sklearn.model_selection import cross_val_score, cross_validate
 from sklearn.tree import DecisionTreeClassifier
 
 from analysis import plot_clf_analysis
-
-TRAIN_SIZE = 0.6
-RANDOM_STATE = 42
+from trainer import generate_credit_card_study, generate_heart_study, generate_studies, RANDOM_STATE, TRAIN_SIZE
 
 from datareader import get_credit_card_train_test, get_heart_train_test
-
-
-def objective_heart(trial):
-    x, x_t, y, y_t = get_heart_train_test(train_size=TRAIN_SIZE, random_state=RANDOM_STATE)
-    return objective(trial, x, y, make_scorer(roc_auc_score))
-
-
-def objective_credit_card(trial):
-    x, x_t, y, y_t = get_credit_card_train_test(train_size=TRAIN_SIZE, random_state=RANDOM_STATE)
-    return objective(trial, x, y, make_scorer(roc_auc_score))
 
 
 def objective(trial, x, y, scoring=None):
@@ -45,24 +33,7 @@ def objective(trial, x, y, scoring=None):
 
 
 def generate_dt_studies():
-    generate_dt_heart_study()
-    generate_dt_credit_card_study()
-
-
-def generate_dt_heart_study():
-    heart_study = optuna.create_study(direction="maximize")
-    heart_study.optimize(objective_heart, n_trials=100, show_progress_bar=True)
-
-    with open("models/dt/heart_study", "wb") as f:
-        pickle.dump(heart_study, f)
-
-
-def generate_dt_credit_card_study():
-    credit_card_study = optuna.create_study(direction="maximize")
-    credit_card_study.optimize(objective_credit_card, n_trials=100, show_progress_bar=True)
-
-    with open("models/dt/credit_card_study", "wb") as f:
-        pickle.dump(credit_card_study, f)
+    generate_studies(objective, "dt")
 
 
 def load_dt_models():
@@ -153,5 +124,3 @@ if __name__ == "__main__":
                       cc_y_test,
                       name="Credit Card Fraud",
                       labels=["No Fraud", "Fraud"])
-
-    print("foobar!")
