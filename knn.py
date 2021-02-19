@@ -4,7 +4,7 @@ from sklearn.metrics import make_scorer, roc_auc_score
 from sklearn.model_selection import cross_val_score, cross_validate
 from sklearn.neighbors import KNeighborsClassifier
 
-from analysis import plot_clf_analysis
+from analysis import cross_validate_and_analyze, plot_clf_analysis
 from datareader import get_heart_train_test
 from trainer import generate_heart_study, generate_studies, RANDOM_STATE, TRAIN_SIZE
 
@@ -70,19 +70,13 @@ if __name__ == "__main__":
         train_size=TRAIN_SIZE,
         random_state=RANDOM_STATE)
 
-    heart_train_scores = cross_validate(
+    cross_validate_and_analyze(
         heart_knn,
         h_x_train,
+        h_x_test,
         h_y_train,
-        scoring=make_scorer(roc_auc_score),
-        n_jobs=-1,
-        return_train_score=True,
-        return_estimator=True)
-
-    best_heart_dt = heart_train_scores['estimator'][heart_train_scores['test_score'].argmax()]
-
-    plot_clf_analysis(best_heart_dt,
-                      h_x_test,
-                      h_y_test,
-                      name="Heart Disease",
-                      labels=["No Disease", "Disease"])
+        h_y_test,
+        name="Heart Disease",
+        labels=["No Disease", "Disease"],
+        scoring=make_scorer(roc_auc_score)
+    )

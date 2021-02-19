@@ -5,7 +5,7 @@ from sklearn.metrics import make_scorer, roc_auc_score, plot_roc_curve, plot_con
 from sklearn.model_selection import cross_val_score, cross_validate
 from sklearn.tree import DecisionTreeClassifier
 
-from analysis import plot_clf_analysis
+from analysis import cross_validate_and_analyze, plot_clf_analysis
 from trainer import generate_credit_card_study, generate_heart_study, generate_studies, RANDOM_STATE, TRAIN_SIZE
 
 from datareader import get_credit_card_train_test, get_heart_train_test
@@ -73,54 +73,34 @@ def load_dt_credit_card_model():
 
 
 if __name__ == "__main__":
-    # Generate studies with optimal hyper-parameters based on training split
     # generate_dt_studies()
 
-    # Load models from optimized studies
     heart_dt, credit_card_dt = load_dt_models()
 
-    # Train optimized models on train splits
-
-    # Heart data
     h_x_train, h_x_test, h_y_train, h_y_test = get_heart_train_test(
         train_size=TRAIN_SIZE,
         random_state=RANDOM_STATE)
-
-    heart_train_scores = cross_validate(
+    cross_validate_and_analyze(
         heart_dt,
         h_x_train,
+        h_x_test,
         h_y_train,
-        scoring=make_scorer(roc_auc_score),
-        n_jobs=-1,
-        return_train_score=True,
-        return_estimator=True)
+        h_y_test,
+        name="Heart Disease",
+        labels=["No Disease", "Disease"],
+        scoring=make_scorer(roc_auc_score)
+    )
 
-    best_heart_dt = heart_train_scores['estimator'][heart_train_scores['test_score'].argmax()]
-
-    # Credit card data
     cc_x_train, cc_x_test, cc_y_train, cc_y_test = get_credit_card_train_test(
         train_size=TRAIN_SIZE,
         random_state=RANDOM_STATE)
-
-    credit_card_train_scores = cross_validate(
-        heart_dt,
+    cross_validate_and_analyze(
+        credit_card_dt,
         cc_x_train,
+        cc_x_test,
         cc_y_train,
-        scoring=make_scorer(roc_auc_score),
-        n_jobs=-1,
-        return_train_score=True,
-        return_estimator=True)
-
-    best_credit_card_dt = credit_card_train_scores['estimator'][credit_card_train_scores['test_score'].argmax()]
-
-    # Score optimized models against test splits
-    plot_clf_analysis(best_heart_dt,
-                      h_x_test,
-                      h_y_test,
-                      name="Heart Disease",
-                      labels=["No Disease", "Disease"])
-    plot_clf_analysis(best_credit_card_dt,
-                      cc_x_test,
-                      cc_y_test,
-                      name="Credit Card Fraud",
-                      labels=["No Fraud", "Fraud"])
+        cc_y_test,
+        name="Credit Card Fraud",
+        labels=["No Fraud", "Fraud"],
+        scoring=make_scorer(roc_auc_score)
+    )
