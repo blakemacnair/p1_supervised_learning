@@ -1,12 +1,12 @@
 import pickle
 
 from sklearn.metrics import make_scorer, roc_auc_score
-from sklearn.model_selection import cross_val_score, cross_validate, StratifiedKFold
-from sklearn.svm import LinearSVC, SVC
+from sklearn.model_selection import cross_val_score, StratifiedKFold
+from sklearn.svm import SVC
 
-from analysis import cross_validate_and_analyze, plot_clf_analysis
+from analysis import cross_validate_and_analyze
 from datareader import get_credit_card_train_test, get_heart_train_test
-from trainer import generate_credit_card_study, generate_heart_study, generate_studies, RANDOM_STATE, TRAIN_SIZE
+from trainer import generate_studies, RANDOM_STATE, TRAIN_SIZE
 
 
 def objective(trial, x, y, scoring=None):

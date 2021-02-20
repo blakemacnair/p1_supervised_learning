@@ -1,12 +1,12 @@
 import pickle
 
 from sklearn.metrics import make_scorer, roc_auc_score
-from sklearn.model_selection import cross_val_score, cross_validate
+from sklearn.model_selection import cross_val_score
 from sklearn.neural_network import MLPClassifier
 
-from analysis import cross_validate_and_analyze, plot_clf_analysis
-from datareader import get_heart_train_test
-from trainer import generate_credit_card_study, generate_studies, RANDOM_STATE, TRAIN_SIZE
+from analysis import cross_validate_and_analyze
+from datareader import get_credit_card_train_test, get_heart_train_test
+from trainer import generate_studies, RANDOM_STATE, TRAIN_SIZE
 
 
 def objective(trial, x, y, scoring=None):
@@ -49,7 +49,7 @@ def load_nn_heart_model():
                          learning_rate=best_params["learning_rate"],
                          learning_rate_init=best_params["learning_rate_init"],
                          random_state=RANDOM_STATE,
-                       max_iter=1000)
+                         max_iter=1000)
 
 
 def load_nn_credit_card_model():
@@ -64,26 +64,39 @@ def load_nn_credit_card_model():
                          learning_rate=best_params["learning_rate"],
                          learning_rate_init=best_params["learning_rate_init"],
                          random_state=RANDOM_STATE,
-                       max_iter=1000)
+                         max_iter=1000)
 
 
 if __name__ == "__main__":
     # generate_nn_studies()
-    generate_credit_card_study(objective, "nn", 50)
+    # generate_credit_card_study(objective, "nn", 50)
 
-    heart_knn = load_nn_heart_model()
+    heart_nn, cc_nn = load_nn_models()
 
     h_x_train, h_x_test, h_y_train, h_y_test = get_heart_train_test(
         train_size=TRAIN_SIZE,
         random_state=RANDOM_STATE)
-
     cross_validate_and_analyze(
-        heart_knn,
+        heart_nn,
         h_x_train,
         h_x_test,
         h_y_train,
         h_y_test,
         name="Heart Disease",
         labels=["No Disease", "Disease"],
+        scoring=make_scorer(roc_auc_score)
+    )
+
+    cc_x_train, cc_x_test, cc_y_train, cc_y_test = get_credit_card_train_test(
+        train_size=TRAIN_SIZE,
+        random_state=RANDOM_STATE)
+    cross_validate_and_analyze(
+        cc_nn,
+        cc_x_train,
+        cc_x_test,
+        cc_y_train,
+        cc_y_test,
+        name="Credit Card Fraud",
+        labels=["No Fraud", "Fraud"],
         scoring=make_scorer(roc_auc_score)
     )

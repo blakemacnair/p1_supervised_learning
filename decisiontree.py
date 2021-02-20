@@ -1,14 +1,12 @@
 import pickle
-import optuna
-import matplotlib.pyplot as plt
-from sklearn.metrics import make_scorer, roc_auc_score, plot_roc_curve, plot_confusion_matrix
-from sklearn.model_selection import cross_val_score, cross_validate
+
+from sklearn.metrics import make_scorer, roc_auc_score
+from sklearn.model_selection import cross_val_score
 from sklearn.tree import DecisionTreeClassifier
 
-from analysis import cross_validate_and_analyze, plot_clf_analysis
-from trainer import generate_credit_card_study, generate_heart_study, generate_studies, RANDOM_STATE, TRAIN_SIZE
-
+from analysis import cross_validate_and_analyze
 from datareader import get_credit_card_train_test, get_heart_train_test
+from trainer import generate_studies, RANDOM_STATE, TRAIN_SIZE
 
 
 def objective(trial, x, y, scoring=None):

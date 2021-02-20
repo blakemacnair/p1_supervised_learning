@@ -1,10 +1,10 @@
 import pickle
 
 from sklearn.metrics import make_scorer, roc_auc_score
-from sklearn.model_selection import cross_val_score, cross_validate
+from sklearn.model_selection import cross_val_score
 from sklearn.neighbors import KNeighborsClassifier
 
-from analysis import cross_validate_and_analyze, plot_clf_analysis
+from analysis import cross_validate_and_analyze
 from datareader import get_heart_train_test
 from trainer import generate_heart_study, generate_studies, RANDOM_STATE, TRAIN_SIZE
 
@@ -62,14 +62,12 @@ def load_knn_credit_card_model():
 
 if __name__ == "__main__":
     # generate_knn_studies()
-    generate_heart_study(objective, "knn", 200)
 
     heart_knn = load_knn_heart_model()
 
     h_x_train, h_x_test, h_y_train, h_y_test = get_heart_train_test(
         train_size=TRAIN_SIZE,
         random_state=RANDOM_STATE)
-
     cross_validate_and_analyze(
         heart_knn,
         h_x_train,
