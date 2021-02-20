@@ -17,8 +17,6 @@ def plot_clf_confusion_mat(clf, x_test, y_test, name, labels):
 
 
 def plot_cross_val_roc_curves(clf, x, y, name):
-    x = x.to_numpy()
-    y = y.to_numpy()
     cv = StratifiedKFold(n_splits=6)
 
     tprs = []
