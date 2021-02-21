@@ -52,7 +52,7 @@ def generate_generic_study(dataset_name,
         return objective_fn(trial, x, y, scoring)
 
     study = optuna.create_study(direction="maximize")
-    study.optimize(objective, n_trials=n_trials, show_progress_bar=True)
+    study.optimize(objective, n_trials=n_trials, n_jobs=-1)
 
     save_study(study, clf_name, dataset_name)
 

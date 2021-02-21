@@ -69,7 +69,7 @@ if __name__ == "__main__":
     nca_h = make_pipeline(StandardScaler(),
                           NeighborhoodComponentsAnalysis(n_components=12,
                                                          random_state=RANDOM_STATE))
-    generate_heart_study(objective, "dt", 150, data_preprocessor=nca_h)
+    generate_heart_study(objective, "dt", 300, data_preprocessor=nca_h)
 
     clf = load_dt_heart_model()
     nca_h = load_dt_heart_preprocessor()
