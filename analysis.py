@@ -1,8 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
 from sklearn.metrics import auc, make_scorer, plot_confusion_matrix, plot_roc_curve, roc_auc_score
 from sklearn.model_selection import cross_validate, StratifiedKFold
+
+from datareader import get_dataset_train_test, RANDOM_STATE
+from trainer import TRAIN_SIZE
 
 
 def plot_clf_confusion_mat(clf, x_test, y_test, name, labels):
@@ -77,7 +79,28 @@ def cross_validate_and_analyze(clf,
     best_clf = train_scores['estimator'][train_scores['test_score'].argmax()]
 
     plot_clf_confusion_mat(best_clf,
-                      x_test,
-                      y_test,
-                      name=name,
-                      labels=labels)
+                           x_test,
+                           y_test,
+                           name=name,
+                           labels=labels)
+
+
+def analyze_clf(dataset_name,
+                name,
+                labels,
+                clf,
+                data_preprocessor=None):
+    x_train, x_test, y_train, y_test = get_dataset_train_test(dataset_name,
+                                                              train_size=TRAIN_SIZE,
+                                                              random_state=RANDOM_STATE,
+                                                              data_preprocessor=data_preprocessor)
+    cross_validate_and_analyze(
+        clf,
+        x_train,
+        x_test,
+        y_train,
+        y_test,
+        name=name,
+        labels=labels,
+        scoring=make_scorer(roc_auc_score)
+    )

@@ -6,7 +6,7 @@ from sklearn.model_selection import StratifiedShuffleSplit
 
 from datareader import get_dataset_train_test, RANDOM_STATE, save_preprocessor, save_study
 
-TRAIN_SIZE = 0.6
+TRAIN_SIZE = 0.4
 N_TRIALS = 100
 
 

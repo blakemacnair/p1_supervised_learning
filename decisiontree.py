@@ -1,15 +1,12 @@
-import pickle
-
-from sklearn.metrics import make_scorer, roc_auc_score
 from sklearn.model_selection import cross_val_score
 from sklearn.neighbors import NeighborhoodComponentsAnalysis
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 
-from analysis import cross_validate_and_analyze
-from datareader import get_dataset_train_test, load_preprocessor, load_study
-from trainer import generate_credit_card_study, generate_studies, RANDOM_STATE, TRAIN_SIZE
+from analysis import analyze_clf
+from datareader import load_preprocessor, load_study
+from trainer import generate_credit_card_study, generate_heart_study, RANDOM_STATE
 
 
 def objective(trial, x, y, scoring=None):
@@ -59,44 +56,41 @@ def load_dt_credit_card_model():
     return load_dt_model(study.best_params)
 
 
+def load_dt_heart_preprocessor():
+    return load_preprocessor("dt", "heart")
+
+
+def load_dt_credit_card_preprocessor():
+    return load_preprocessor("dt", "credit_card")
+
+
 if __name__ == "__main__":
-    # generate_dt_studies()
+    # Study Heart Failure dataset with DecisionTree
+    nca_h = make_pipeline(StandardScaler(),
+                          NeighborhoodComponentsAnalysis(n_components=12,
+                                                         random_state=RANDOM_STATE))
+    generate_heart_study(objective, "dt", 150, data_preprocessor=nca_h)
 
+    clf = load_dt_heart_model()
+    nca_h = load_dt_heart_preprocessor()
+
+    analyze_clf(dataset_name="heart",
+                name="Heart Failure",
+                labels=["Healthy", "Failure"],
+                clf=clf,
+                data_preprocessor=nca_h)
+
+    # Study Credit Card dataset with DecisionTree
     nca = make_pipeline(StandardScaler(),
-                        NeighborhoodComponentsAnalysis(n_components=7,
+                        NeighborhoodComponentsAnalysis(n_components=8,
                                                        random_state=RANDOM_STATE))
+    generate_credit_card_study(objective, "dt", 75, data_preprocessor=nca)
 
-    generate_credit_card_study(objective, "dt", 100, data_preprocessor=nca)
+    clf = load_dt_credit_card_model()
+    nca = load_dt_credit_card_preprocessor()
 
-    heart_dt, credit_card_dt = load_dt_models()
-    nca = load_preprocessor("dt", "credit_card")
-
-    # h_x_train, h_x_test, h_y_train, h_y_test = get_dataset_train_test("heart",
-    #                                                                   train_size=TRAIN_SIZE,
-    #                                                                   random_state=RANDOM_STATE,
-    #                                                                   data_preprocessor=nca)
-    # cross_validate_and_analyze(
-    #     heart_dt,
-    #     h_x_train,
-    #     h_x_test,
-    #     h_y_train,
-    #     h_y_test,
-    #     name="Heart Disease",
-    #     labels=["No Disease", "Disease"],
-    #     scoring=make_scorer(roc_auc_score)
-    # )
-
-    cc_x_train, cc_x_test, cc_y_train, cc_y_test = get_dataset_train_test("credit_card",
-                                                                          train_size=TRAIN_SIZE,
-                                                                          random_state=RANDOM_STATE,
-                                                                          data_preprocessor=nca)
-    cross_validate_and_analyze(
-        credit_card_dt,
-        cc_x_train,
-        cc_x_test,
-        cc_y_train,
-        cc_y_test,
-        name="Credit Card Fraud",
-        labels=["No Fraud", "Fraud"],
-        scoring=make_scorer(roc_auc_score)
-    )
+    analyze_clf(dataset_name="credit_card",
+                name="Credit Card Fraud",
+                labels=["No Fraud", "Fraud"],
+                clf=clf,
+                data_preprocessor=nca)
