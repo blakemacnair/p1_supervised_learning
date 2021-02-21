@@ -30,10 +30,6 @@ def objective(trial, x, y, scoring=None):
     return score.mean()
 
 
-def load_dt_models():
-    return load_dt_heart_model(), load_dt_credit_card_model()
-
-
 def load_dt_model(params):
     return DecisionTreeClassifier(
         criterion=params["criterion"],

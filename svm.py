@@ -1,12 +1,9 @@
-import pickle
-
-from sklearn.metrics import make_scorer, roc_auc_score
 from sklearn.model_selection import cross_val_score, StratifiedKFold
 from sklearn.svm import SVC
 
-from analysis import cross_validate_and_analyze
-from datareader import get_dataset_train_test
-from trainer import generate_studies, RANDOM_STATE, TRAIN_SIZE
+from analysis import analyze_clf
+from datareader import load_preprocessor, load_study
+from trainer import generate_credit_card_study, generate_heart_study, RANDOM_STATE
 
 
 def objective(trial, x, y, scoring=None):
@@ -35,73 +32,52 @@ def objective(trial, x, y, scoring=None):
     return score.mean()
 
 
-def generate_svc_studies():
-    generate_studies(objective, "svm")
-
-
-def load_svc_models():
-    return load_svc_heart_model(), load_svc_credit_card_model()
-
-
-def load_svc_heart_model():
-    with open("models/svm/heart_study", "rb") as f:
-        study = pickle.load(f)
-
-    best_params = study.best_params
-    return SVC(C=best_params["c"],
-               kernel=best_params["kernel"],
-               degree=best_params["degree"],
+def load_svm_model(params):
+    return SVC(C=params["c"],
+               kernel=params["kernel"],
+               degree=params["degree"],
                gamma="scale",
-               coef0=best_params["coef0"],
-               shrinking=best_params["shrinking"],
+               coef0=params["coef0"],
+               shrinking=params["shrinking"],
                class_weight="balanced",
                random_state=RANDOM_STATE)
 
 
-def load_svc_credit_card_model():
-    with open("models/svm/credit_card_study", "rb") as f:
-        study = pickle.load(f)
+def load_svm_heart_model():
+    study = load_study("svm", "heart")
+    return load_svm_model(study.best_params)
 
-    best_params = study.best_params
-    return SVC(C=best_params["c"],
-               kernel=best_params["kernel"],
-               degree=best_params["degree"],
-               gamma="scale",
-               coef0=best_params["coef0"],
-               shrinking=best_params["shrinking"],
-               class_weight="balanced",
-               random_state=RANDOM_STATE)
+
+def load_svm_credit_card_model():
+    study = load_study("svm", "credit_card")
+    return load_svm_model(study.best_params)
+
+
+def load_svm_heart_preprocessor():
+    return load_preprocessor("svm", "heart")
+
+
+def load_svm_credit_card_preprocessor():
+    return load_preprocessor("svm", "credit_card")
 
 
 if __name__ == "__main__":
-    # generate_svc_studies()
+    # Study Heart Failure dataset with SVM
+    generate_heart_study(objective, "svm", 300, data_preprocessor=None)
 
-    heart_svc, cc_svc = load_svc_models()
+    clf = load_svm_heart_model()
+    analyze_clf(dataset_name="heart",
+                name="Heart Failure",
+                labels=["Healthy", "Failure"],
+                clf=clf,
+                data_preprocessor=None)
 
-    h_x_train, h_x_test, h_y_train, h_y_test = get_dataset_train_test("heart",
-        train_size=TRAIN_SIZE,
-        random_state=RANDOM_STATE)
-    cross_validate_and_analyze(
-        heart_svc,
-        h_x_train,
-        h_x_test,
-        h_y_train,
-        h_y_test,
-        name="Heart Disease",
-        labels=["No Disease", "Disease"],
-        scoring=make_scorer(roc_auc_score)
-    )
+    # Study Credit Card dataset with SVM
+    generate_credit_card_study(objective, "svm", 75, data_preprocessor=None)
 
-    cc_x_train, cc_x_test, cc_y_train, cc_y_test = get_dataset_train_test("credit_card",
-        train_size=TRAIN_SIZE,
-        random_state=RANDOM_STATE)
-    cross_validate_and_analyze(
-        cc_svc,
-        cc_x_train,
-        cc_x_test,
-        cc_y_train,
-        cc_y_test,
-        name="Credit Card Fraud",
-        labels=["No Fraud", "Fraud"],
-        scoring=make_scorer(roc_auc_score)
-    )
+    clf = load_svm_credit_card_model()
+    analyze_clf(dataset_name="credit_card",
+                name="Credit Card Fraud",
+                labels=["No Fraud", "Fraud"],
+                clf=clf,
+                data_preprocessor=None)
