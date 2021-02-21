@@ -2,11 +2,14 @@ import pickle
 
 from sklearn.metrics import make_scorer, roc_auc_score
 from sklearn.model_selection import cross_val_score
+from sklearn.neighbors import NeighborhoodComponentsAnalysis
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 
 from analysis import cross_validate_and_analyze
-from datareader import get_credit_card_train_test, get_heart_train_test
-from trainer import generate_studies, RANDOM_STATE, TRAIN_SIZE
+from datareader import get_dataset_train_test, load_preprocessor, load_study
+from trainer import generate_credit_card_study, generate_studies, RANDOM_STATE, TRAIN_SIZE
 
 
 def objective(trial, x, y, scoring=None):
@@ -30,68 +33,63 @@ def objective(trial, x, y, scoring=None):
     return score.mean()
 
 
-def generate_dt_studies():
-    generate_studies(objective, "dt")
-
-
 def load_dt_models():
     return load_dt_heart_model(), load_dt_credit_card_model()
 
 
-def load_dt_heart_model():
-    with open("models/dt/heart_study", "rb") as f:
-        study = pickle.load(f)
-
-    heart_best_params = study.best_params
+def load_dt_model(params):
     return DecisionTreeClassifier(
-        criterion=heart_best_params["criterion"],
-        max_depth=heart_best_params["max_depth"],
-        min_samples_split=heart_best_params["min_samples_split"],
-        min_samples_leaf=heart_best_params["min_samples_leaf"],
-        min_impurity_decrease=heart_best_params["min_impurity_decrease"],
-        ccp_alpha=heart_best_params["ccp_alpha"],
+        criterion=params["criterion"],
+        max_depth=params["max_depth"],
+        min_samples_split=params["min_samples_split"],
+        min_samples_leaf=params["min_samples_leaf"],
+        min_impurity_decrease=params["min_impurity_decrease"],
+        ccp_alpha=params["ccp_alpha"],
         class_weight="balanced",
         random_state=RANDOM_STATE)
+
+
+def load_dt_heart_model():
+    study = load_study("dt", "heart")
+    return load_dt_model(study.best_params)
 
 
 def load_dt_credit_card_model():
-    with open("models/dt/credit_card_study", "rb") as f:
-        study = pickle.load(f)
-
-    heart_best_params = study.best_params
-    return DecisionTreeClassifier(
-        criterion=heart_best_params["criterion"],
-        max_depth=heart_best_params["max_depth"],
-        min_samples_split=heart_best_params["min_samples_split"],
-        min_samples_leaf=heart_best_params["min_samples_leaf"],
-        min_impurity_decrease=heart_best_params["min_impurity_decrease"],
-        ccp_alpha=heart_best_params["ccp_alpha"],
-        class_weight="balanced",
-        random_state=RANDOM_STATE)
+    study = load_study("dt", "credit_card")
+    return load_dt_model(study.best_params)
 
 
 if __name__ == "__main__":
     # generate_dt_studies()
 
+    nca = make_pipeline(StandardScaler(),
+                        NeighborhoodComponentsAnalysis(n_components=7,
+                                                       random_state=RANDOM_STATE))
+
+    generate_credit_card_study(objective, "dt", 100, data_preprocessor=nca)
+
     heart_dt, credit_card_dt = load_dt_models()
+    nca = load_preprocessor("dt", "credit_card")
 
-    h_x_train, h_x_test, h_y_train, h_y_test = get_heart_train_test(
-        train_size=TRAIN_SIZE,
-        random_state=RANDOM_STATE)
-    cross_validate_and_analyze(
-        heart_dt,
-        h_x_train,
-        h_x_test,
-        h_y_train,
-        h_y_test,
-        name="Heart Disease",
-        labels=["No Disease", "Disease"],
-        scoring=make_scorer(roc_auc_score)
-    )
+    # h_x_train, h_x_test, h_y_train, h_y_test = get_dataset_train_test("heart",
+    #                                                                   train_size=TRAIN_SIZE,
+    #                                                                   random_state=RANDOM_STATE,
+    #                                                                   data_preprocessor=nca)
+    # cross_validate_and_analyze(
+    #     heart_dt,
+    #     h_x_train,
+    #     h_x_test,
+    #     h_y_train,
+    #     h_y_test,
+    #     name="Heart Disease",
+    #     labels=["No Disease", "Disease"],
+    #     scoring=make_scorer(roc_auc_score)
+    # )
 
-    cc_x_train, cc_x_test, cc_y_train, cc_y_test = get_credit_card_train_test(
-        train_size=TRAIN_SIZE,
-        random_state=RANDOM_STATE)
+    cc_x_train, cc_x_test, cc_y_train, cc_y_test = get_dataset_train_test("credit_card",
+                                                                          train_size=TRAIN_SIZE,
+                                                                          random_state=RANDOM_STATE,
+                                                                          data_preprocessor=nca)
     cross_validate_and_analyze(
         credit_card_dt,
         cc_x_train,

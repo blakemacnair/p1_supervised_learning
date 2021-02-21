@@ -6,7 +6,7 @@ from sklearn.model_selection import cross_val_score
 from sklearn.tree import DecisionTreeClassifier
 
 from analysis import cross_validate_and_analyze
-from datareader import get_credit_card_train_test, get_heart_train_test
+from datareader import get_dataset_train_test
 from trainer import generate_credit_card_study, generate_heart_study, generate_studies, RANDOM_STATE, TRAIN_SIZE
 
 
@@ -101,7 +101,7 @@ if __name__ == "__main__":
 
     heart_boosting, credit_card_boosting = load_boosting_models()
 
-    # h_x_train, h_x_test, h_y_train, h_y_test = get_heart_train_test(
+    # h_x_train, h_x_test, h_y_train, h_y_test = get_dataset_train_test("heart",
     #     train_size=TRAIN_SIZE,
     #     random_state=RANDOM_STATE)
     # cross_validate_and_analyze(
@@ -115,7 +115,7 @@ if __name__ == "__main__":
     #     scoring=make_scorer(roc_auc_score)
     # )
 
-    cc_x_train, cc_x_test, cc_y_train, cc_y_test = get_credit_card_train_test(
+    cc_x_train, cc_x_test, cc_y_train, cc_y_test = get_dataset_train_test("credit_card",
         train_size=TRAIN_SIZE,
         random_state=RANDOM_STATE)
     cross_validate_and_analyze(

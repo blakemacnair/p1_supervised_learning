@@ -5,23 +5,25 @@ from sklearn.model_selection import cross_val_score
 from sklearn.neighbors import KNeighborsClassifier
 
 from analysis import cross_validate_and_analyze
-from datareader import get_heart_train_test
-from trainer import generate_heart_study, generate_studies, RANDOM_STATE, TRAIN_SIZE
+from datareader import get_dataset_train_test
+from trainer import generate_credit_card_study, generate_heart_study, generate_studies, RANDOM_STATE, TRAIN_SIZE
 
 
 def objective(trial, x, y, scoring=None):
-    n_neighbors = trial.suggest_int("n_neighbors", 1, 100)
-    weights = trial.suggest_categorical("weights", ["uniform", "distance"])
-    algorithm = trial.suggest_categorical("algorithm", ["ball_tree", "kd_tree", "brute"])
-    leaf_size = trial.suggest_int("leaf_size", 10, 50)
-    p = trial.suggest_int("p", 1, 4)
+    n_neighbors = trial.suggest_int("n_neighbors", 3, 100)
+    # weights = trial.suggest_categorical("weights", ["uniform", "distance"])
+    # algorithm = trial.suggest_categorical("algorithm", ["ball_tree", "kd_tree"])
+    leaf_size = trial.suggest_int("leaf_size", 10, 100)
+    p = trial.suggest_int("p", 1, 3)
 
     knn = KNeighborsClassifier(n_neighbors=n_neighbors,
-                               weights=weights,
-                               algorithm=algorithm,
+                               weights="distance",
+                               algorithm="kd_tree",
                                leaf_size=leaf_size,
                                p=p,
+                               metric="infinity",
                                n_jobs=-1)
+    # ['chebyshev', 'cityblock', 'euclidean', 'infinity', 'l1', 'l2', 'manhattan', 'minkowski', 'p']
     score = cross_val_score(knn, x, y, n_jobs=-1, cv=3, scoring=scoring)
     return score.mean()
 
@@ -53,28 +55,45 @@ def load_knn_credit_card_model():
 
     best_params = study.best_params
     return KNeighborsClassifier(n_neighbors=best_params["n_neighbors"],
-                                weights=best_params["weights"],
-                                algorithm=best_params["algorithm"],
+                                weights="distance",
+                                algorithm="kd_tree",
                                 leaf_size=best_params["leaf_size"],
                                 p=best_params["p"],
+                                metric="infinity",
                                 n_jobs=-1)
 
 
 if __name__ == "__main__":
     # generate_knn_studies()
+    # generate_heart_study(objective, "knn", 100)
+    generate_credit_card_study(objective, "knn", 100, percent_sample=0.2)
 
-    heart_knn = load_knn_heart_model()
+    heart_knn, cc_knn = load_knn_models()
 
-    h_x_train, h_x_test, h_y_train, h_y_test = get_heart_train_test(
+    # h_x_train, h_x_test, h_y_train, h_y_test = get_dataset_train_test("heart",
+    #     train_size=TRAIN_SIZE,
+    #     random_state=RANDOM_STATE)
+    # cross_validate_and_analyze(
+    #     heart_knn,
+    #     h_x_train,
+    #     h_x_test,
+    #     h_y_train,
+    #     h_y_test,
+    #     name="Heart Disease",
+    #     labels=["No Disease", "Disease"],
+    #     scoring=make_scorer(roc_auc_score)
+    # )
+
+    cc_x_train, cc_x_test, cc_y_train, cc_y_test = get_dataset_train_test("credit_card",
         train_size=TRAIN_SIZE,
         random_state=RANDOM_STATE)
     cross_validate_and_analyze(
-        heart_knn,
-        h_x_train,
-        h_x_test,
-        h_y_train,
-        h_y_test,
-        name="Heart Disease",
-        labels=["No Disease", "Disease"],
+        cc_knn,
+        cc_x_train,
+        cc_x_test,
+        cc_y_train,
+        cc_y_test,
+        name="Credit Card Fraud",
+        labels=["No Fraud", "Fraud"],
         scoring=make_scorer(roc_auc_score)
     )
