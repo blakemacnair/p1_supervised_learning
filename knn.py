@@ -70,7 +70,7 @@ def generate_knn():
     generate_credit_card_study(objective,
                                "knn",
                                75,
-                               train_size=0.15,
+                               train_size=0.1,
                                data_preprocessor=prep_cc)
 
 
@@ -88,7 +88,7 @@ def validate_knn():
                 labels=["No Fraud", "Fraud"],
                 clf=load_knn_credit_card_model(),
                 data_preprocessor=load_knn_credit_card_preprocessor(),
-                train_max=0.3)
+                train_max=0.1)
 
 
 if __name__ == "__main__":
