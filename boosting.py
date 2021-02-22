@@ -86,35 +86,39 @@ def load_dt_credit_card_preprocessor():
     return load_preprocessor("boosting", "credit_card")
 
 
-if __name__ == "__main__":
-    nca = make_pipeline(StandardScaler(),
-                        NeighborhoodComponentsAnalysis(n_components=12,
-                                                       random_state=RANDOM_STATE))
+def generate_boosting():
+    nca_h = make_pipeline(StandardScaler(),
+                          NeighborhoodComponentsAnalysis(n_components=12,
+                                                         random_state=RANDOM_STATE))
     generate_heart_study(objective,
                          "boosting",
                          200,
-                         data_preprocessor=nca)
-    heart_boosting = load_boosting_heart_model()
-    nca = load_dt_heart_preprocessor()
-    analyze_clf(dataset_name="heart",
-                name="Heart Failure",
-                labels=["Healthy", "Failure"],
-                clf=heart_boosting,
-                data_preprocessor=nca)
+                         data_preprocessor=nca_h)
 
-    nca = make_pipeline(StandardScaler(),
-                        NeighborhoodComponentsAnalysis(n_components=8,
-                                                       random_state=RANDOM_STATE))
+    nca_cc = make_pipeline(StandardScaler(),
+                           NeighborhoodComponentsAnalysis(n_components=8,
+                                                          random_state=RANDOM_STATE))
     generate_credit_card_study(objective,
                                "boosting",
                                75,
                                percent_sample=0.25,
-                               data_preprocessor=nca)
-    credit_card_boosting = load_boosting_credit_card_model()
-    nca = load_dt_credit_card_preprocessor()
+                               data_preprocessor=nca_cc)
+
+
+def validate_boosting():
+    analyze_clf(dataset_name="heart",
+                name="Heart Failure",
+                labels=["Healthy", "Failure"],
+                clf=load_boosting_heart_model(),
+                data_preprocessor=load_dt_heart_preprocessor())
 
     analyze_clf(dataset_name="credit_card",
                 name="Credit Card Fraud",
                 labels=["No Fraud", "Fraud"],
-                clf=credit_card_boosting,
-                data_preprocessor=nca)
+                clf=load_boosting_credit_card_model(),
+                data_preprocessor=load_dt_credit_card_preprocessor())
+
+
+if __name__ == "__main__":
+    generate_boosting()
+    validate_boosting()
