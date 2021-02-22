@@ -60,33 +60,32 @@ def load_dt_credit_card_preprocessor():
     return load_preprocessor("dt", "credit_card")
 
 
-if __name__ == "__main__":
-    # Study Heart Failure dataset with DecisionTree
+def generate_dt():
     nca_h = make_pipeline(StandardScaler(),
                           NeighborhoodComponentsAnalysis(n_components=12,
                                                          random_state=RANDOM_STATE))
     generate_heart_study(objective, "dt", 300, data_preprocessor=nca_h)
 
-    clf = load_dt_heart_model()
-    nca_h = load_dt_heart_preprocessor()
+    nca_cc = make_pipeline(StandardScaler(),
+                           NeighborhoodComponentsAnalysis(n_components=8,
+                                                          random_state=RANDOM_STATE))
+    generate_credit_card_study(objective, "dt", 75, data_preprocessor=nca_cc)
 
+
+def validate_dt():
     analyze_clf(dataset_name="heart",
                 name="Heart Failure",
                 labels=["Healthy", "Failure"],
-                clf=clf,
-                data_preprocessor=nca_h)
-
-    # Study Credit Card dataset with DecisionTree
-    nca = make_pipeline(StandardScaler(),
-                        NeighborhoodComponentsAnalysis(n_components=8,
-                                                       random_state=RANDOM_STATE))
-    generate_credit_card_study(objective, "dt", 75, data_preprocessor=nca)
-
-    clf = load_dt_credit_card_model()
-    nca = load_dt_credit_card_preprocessor()
+                clf=load_dt_heart_model(),
+                data_preprocessor=load_dt_heart_preprocessor())
 
     analyze_clf(dataset_name="credit_card",
                 name="Credit Card Fraud",
                 labels=["No Fraud", "Fraud"],
-                clf=clf,
-                data_preprocessor=nca)
+                clf=load_dt_credit_card_model(),
+                data_preprocessor=load_dt_credit_card_preprocessor())
+
+
+if __name__ == "__main__":
+    generate_dt()
+    validate_dt()
