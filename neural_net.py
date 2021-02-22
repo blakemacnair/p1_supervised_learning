@@ -59,29 +59,34 @@ def load_nn_credit_card_preprocessor():
     return load_preprocessor("nn", "credit_card")
 
 
-if __name__ == "__main__":
-    # Study Heart Failure dataset with Neural Network
-    prep = make_pipeline(StandardScaler(),
+def generate_nn():
+    prep_h = make_pipeline(StandardScaler(),
                          PCA(n_components="mle", random_state=RANDOM_STATE))
-    generate_heart_study(objective, "nn", 300, data_preprocessor=prep)
+    generate_heart_study(objective, "nn", 300, data_preprocessor=prep_h)
 
+    prep_cc = make_pipeline(StandardScaler(),
+                         PCA(n_components="mle", random_state=RANDOM_STATE))
+    generate_credit_card_study(objective,
+                               "nn",
+                               75,
+                               percent_sample=0.2,
+                               data_preprocessor=prep_cc)
+
+
+def validate_nn():
     analyze_clf(dataset_name="heart",
                 name="Heart Failure",
                 labels=["Healthy", "Failure"],
                 clf=load_nn_heart_model(),
                 data_preprocessor=load_nn_heart_preprocessor())
 
-    # Study Credit Card dataset with Neural Network
-    prep = make_pipeline(StandardScaler(),
-                         PCA(n_components="mle", random_state=RANDOM_STATE))
-    generate_credit_card_study(objective,
-                               "nn",
-                               75,
-                               percent_sample=0.2,
-                               data_preprocessor=prep)
-
     analyze_clf(dataset_name="credit_card",
                 name="Credit Card Fraud",
                 labels=["No Fraud", "Fraud"],
                 clf=load_nn_credit_card_model(),
                 data_preprocessor=load_nn_credit_card_preprocessor())
+
+
+if __name__ == "__main__":
+    generate_nn()
+    validate_nn()
