@@ -7,6 +7,6 @@ from neural_net import generate_nn
 if __name__ == "__main__":
     generate_dt()
     generate_boosting()
-    generate_knn()
-    generate_svm()
-    generate_nn()
+    # generate_knn()
+    # generate_svm()
+    # generate_nn()
