@@ -3,20 +3,19 @@ import numpy as np
 from sklearn.metrics import auc, make_scorer, plot_confusion_matrix, plot_roc_curve, roc_auc_score
 from sklearn.model_selection import cross_validate, StratifiedKFold
 
-from datareader import get_dataset_train_test, RANDOM_STATE
+from datareader import get_dataset_train_test, RANDOM_STATE, save_figure
 from trainer import TRAIN_SIZE
-from datareader import save_figure
 
 
 def plot_clf_confusion_mat(clf, x_test, y_test, clf_name, dataset_name, labels):
     fig, ax = plt.subplots()
-    confusion_display = plot_confusion_matrix(clf,
-                                              x_test,
-                                              y_test,
-                                              display_labels=labels,
-                                              normalize="true",
-                                              ax=ax,
-                                              cmap=plt.get_cmap("Blues"))
+    plot_confusion_matrix(clf,
+                          x_test,
+                          y_test,
+                          display_labels=labels,
+                          normalize="true",
+                          ax=ax,
+                          cmap=plt.get_cmap("Blues"))
 
     save_figure(fig, clf_name, dataset_name, "confusion_matrix")
 
