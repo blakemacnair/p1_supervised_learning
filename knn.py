@@ -1,15 +1,12 @@
-import pickle
-
-from sklearn.metrics import make_scorer, roc_auc_score
+from sklearn.decomposition import PCA
 from sklearn.model_selection import cross_val_score
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.decomposition import PCA
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from analysis import analyze_clf, cross_validate_and_analyze
-from datareader import get_dataset_train_test, load_preprocessor, load_study
-from trainer import generate_credit_card_study, generate_heart_study, generate_studies, RANDOM_STATE, TRAIN_SIZE
+from analysis import analyze_clf
+from datareader import load_preprocessor, load_study
+from trainer import generate_credit_card_study, generate_heart_study, generate_studies, RANDOM_STATE
 
 
 def objective(trial, x, y, scoring=None):
@@ -66,25 +63,37 @@ def load_knn_credit_card_preprocessor():
     return load_preprocessor("knn", "credit_card")
 
 
-if __name__ == "__main__":
-    # generate_heart_study(objective, "knn", 200)
-    #
-    # analyze_clf(dataset_name="heart",
-    #             name="Heart Failure",
-    #             labels=["Healthy", "Failure"],
-    #             clf=load_knn_heart_model(),
-    #             data_preprocessor=None)
+def generate_knn():
+    prep_h = make_pipeline(StandardScaler(),
+                           PCA(n_components="mle", random_state=RANDOM_STATE))
+    generate_heart_study(objective,
+                         "knn",
+                         200,
+                         data_preprocessor=prep_h)
 
-    prep = make_pipeline(StandardScaler(),
-                         PCA(n_components="mle", random_state=RANDOM_STATE))
+    prep_cc = make_pipeline(StandardScaler(),
+                            PCA(n_components="mle", random_state=RANDOM_STATE))
     generate_credit_card_study(objective,
                                "knn",
                                100,
                                percent_sample=0.3,
-                               data_preprocessor=prep)
+                               data_preprocessor=prep_cc)
+
+
+def validate_knn():
+    analyze_clf(dataset_name="heart",
+                name="Heart Failure",
+                labels=["Healthy", "Failure"],
+                clf=load_knn_heart_model(),
+                data_preprocessor=load_knn_heart_preprocessor())
 
     analyze_clf(dataset_name="credit_card",
                 name="Credit Card Fraud",
                 labels=["No Fraud", "Fraud"],
                 clf=load_knn_credit_card_model(),
                 data_preprocessor=load_knn_credit_card_preprocessor())
+
+
+if __name__ == "__main__":
+    generate_knn()
+    validate_knn()
