@@ -62,7 +62,7 @@ def generate_knn():
                            PCA(n_components="mle", random_state=RANDOM_STATE))
     generate_heart_study(objective,
                          "knn",
-                         200,
+                         100,
                          data_preprocessor=prep_h)
 
     prep_cc = make_pipeline(StandardScaler(),
@@ -88,7 +88,7 @@ def validate_knn():
                 labels=["No Fraud", "Fraud"],
                 clf=load_knn_credit_card_model(),
                 data_preprocessor=load_knn_credit_card_preprocessor(),
-                train_max=0.1)
+                train_max=0.5)
 
 
 if __name__ == "__main__":

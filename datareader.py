@@ -31,8 +31,10 @@ def get_dataset_train_test(dataset_name,
                             stratify=y)
 
 
-def sample(x, y):
-    n_rows_keep = MAX_TRANSFORM_DATA // x.shape[1]
+def sample(x, y, n_rows_keep=None):
+    if n_rows_keep is None:
+        n_rows_keep = MAX_TRANSFORM_DATA // x.shape[1]
+
     ss = StratifiedShuffleSplit(train_size=n_rows_keep,
                                 random_state=RANDOM_STATE)
     fit_ind, _ = list(ss.split(x, y))[0]
@@ -68,6 +70,8 @@ def get_credit_card_xy(data_preprocessor=None) -> (np.ndarray, np.ndarray):
     y = credit_card_data['Class'].to_numpy()
     x = np.ascontiguousarray(x)
     y = np.ascontiguousarray(y)
+
+    x, y = sample(x, y, 100_000)
 
     if data_preprocessor is not None:
         try:
