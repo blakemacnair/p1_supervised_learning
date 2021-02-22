@@ -74,13 +74,13 @@ def generate_dt():
 
 def validate_dt():
     analyze_clf(dataset_name="heart",
-                name="Heart Failure",
+                clf_name="dt",
                 labels=["Healthy", "Failure"],
                 clf=load_dt_heart_model(),
                 data_preprocessor=load_dt_heart_preprocessor())
 
     analyze_clf(dataset_name="credit_card",
-                name="Credit Card Fraud",
+                clf_name="dt",
                 labels=["No Fraud", "Fraud"],
                 clf=load_dt_credit_card_model(),
                 data_preprocessor=load_dt_credit_card_preprocessor())

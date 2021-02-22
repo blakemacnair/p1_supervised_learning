@@ -5,20 +5,23 @@ from sklearn.model_selection import cross_validate, StratifiedKFold
 
 from datareader import get_dataset_train_test, RANDOM_STATE
 from trainer import TRAIN_SIZE
+from datareader import save_figure
 
 
-def plot_clf_confusion_mat(clf, x_test, y_test, name, labels):
+def plot_clf_confusion_mat(clf, x_test, y_test, clf_name, dataset_name, labels):
+    fig, ax = plt.subplots()
     confusion_display = plot_confusion_matrix(clf,
                                               x_test,
                                               y_test,
                                               display_labels=labels,
                                               normalize="true",
+                                              ax=ax,
                                               cmap=plt.get_cmap("Blues"))
-    plt.title("{} - Confusion Matrix".format(name))
-    plt.show()
+
+    save_figure(fig, clf_name, dataset_name, "confusion_matrix")
 
 
-def plot_cross_val_roc_curves(clf, x, y, name):
+def plot_cross_val_roc_curves(clf, x, y, clf_name, dataset_name):
     cv = StratifiedKFold(n_splits=6)
 
     tprs = []
@@ -54,8 +57,8 @@ def plot_cross_val_roc_curves(clf, x, y, name):
 
     ax.set(xlim=[-0.05, 1.05], ylim=[-0.05, 1.05])
     ax.legend(loc="lower right")
-    plt.title("{} - ROC Over Cross-Validation".format(name))
-    plt.show()
+
+    save_figure(fig, clf_name, dataset_name, "roc_auc_cv")
 
 
 def cross_validate_and_analyze(clf,
@@ -63,10 +66,11 @@ def cross_validate_and_analyze(clf,
                                x_test,
                                y_train,
                                y_test,
-                               name,
+                               clf_name,
+                               dataset_name,
                                labels,
                                scoring=make_scorer(roc_auc_score)):
-    plot_cross_val_roc_curves(clf, x_train, y_train, name)
+    plot_cross_val_roc_curves(clf, x_train, y_train, clf_name, dataset_name)
 
     train_scores = cross_validate(
         clf,
@@ -81,12 +85,13 @@ def cross_validate_and_analyze(clf,
     plot_clf_confusion_mat(best_clf,
                            x_test,
                            y_test,
-                           name=name,
+                           clf_name=clf_name,
+                           dataset_name=dataset_name,
                            labels=labels)
 
 
 def analyze_clf(dataset_name,
-                name,
+                clf_name,
                 labels,
                 clf,
                 train_size=TRAIN_SIZE,
@@ -101,7 +106,8 @@ def analyze_clf(dataset_name,
         x_test,
         y_train,
         y_test,
-        name=name,
+        clf_name=clf_name,
+        dataset_name=dataset_name,
         labels=labels,
         scoring=make_scorer(roc_auc_score)
     )

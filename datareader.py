@@ -10,6 +10,7 @@ RANDOM_STATE = 42
 
 STUDY_PATH_TEMPLATE = "models/{}/{}_study"
 PREPROCCESSING_PATH_TEMPLATE = "models/{}/{}_preprocessing"
+OUTPUT_PATH_TEMPLATE = "output/{}/{}/{}.png"
 
 
 def get_dataset_train_test(dataset_name,
@@ -91,3 +92,7 @@ def load_preprocessor(clf_name, dataset_name):
         study = pickle.load(f)
 
     return study
+
+
+def save_figure(fig, clf_name, dataset_name, file_name):
+    fig.savefig(OUTPUT_PATH_TEMPLATE.format(clf_name, dataset_name, file_name))

@@ -107,13 +107,13 @@ def generate_boosting():
 
 def validate_boosting():
     analyze_clf(dataset_name="heart",
-                name="Heart Failure",
+                clf_name="boosting",
                 labels=["Healthy", "Failure"],
                 clf=load_boosting_heart_model(),
                 data_preprocessor=load_dt_heart_preprocessor())
 
     analyze_clf(dataset_name="credit_card",
-                name="Credit Card Fraud",
+                clf_name="boosting",
                 labels=["No Fraud", "Fraud"],
                 clf=load_boosting_credit_card_model(),
                 data_preprocessor=load_dt_credit_card_preprocessor())
