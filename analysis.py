@@ -1,13 +1,14 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import auc, make_scorer, plot_confusion_matrix, plot_roc_curve, roc_auc_score
-from sklearn.model_selection import cross_validate, StratifiedKFold
+from sklearn.model_selection import cross_validate, StratifiedKFold, StratifiedShuffleSplit
 
-from datareader import get_dataset_train_test, RANDOM_STATE, save_figure
+from datareader import get_credit_card_xy, get_dataset_train_test, get_heart_xy, RANDOM_STATE, save_figure
 from trainer import TRAIN_SIZE
 
 
 def plot_clf_confusion_mat(clf, x_test, y_test, clf_name, dataset_name, labels):
+    print("\tGenerating Confusion matrix...")
     fig, ax = plt.subplots()
     plot_confusion_matrix(clf,
                           x_test,
@@ -21,6 +22,7 @@ def plot_clf_confusion_mat(clf, x_test, y_test, clf_name, dataset_name, labels):
 
 
 def plot_cross_val_roc_curves(clf, x, y, clf_name, dataset_name):
+    print("\tGenerating AUC_ROC curves over cross validation...")
     cv = StratifiedKFold(n_splits=6)
 
     tprs = []
@@ -89,12 +91,70 @@ def cross_validate_and_analyze(clf,
                            labels=labels)
 
 
+def plot_performance_vs_train_size(dataset_name,
+                                   clf_name,
+                                   clf,
+                                   data_preprocessor=None,
+                                   scoring=make_scorer(roc_auc_score),
+                                   train_max=0.9):
+    print("\tPerformance VS Train Size...")
+    if dataset_name == "heart":
+        x, y = get_heart_xy(data_preprocessor)
+    elif dataset_name == "credit_card":
+        x, y = get_credit_card_xy(data_preprocessor)
+    else:
+        assert False
+
+    fig, ax = plt.subplots()
+
+    train_scores = []
+    test_scores = []
+    steps = 10
+    a_min = 0.1
+    step_size = (train_max - a_min) / steps
+    train_sizes = np.arange(a_min, train_max, step_size)
+    for train_size in train_sizes:
+        print("\t\tTrain size: {}".format(train_size, ))
+        ss = StratifiedShuffleSplit(train_size=train_size,
+                                    n_splits=15,
+                                    random_state=RANDOM_STATE)
+        scores = cross_validate(
+            clf,
+            x,
+            y,
+            scoring=scoring,
+            cv=ss.split(x, y),
+            n_jobs=-1,
+            return_train_score=True,
+            return_estimator=False)
+
+        avg_train = np.mean(scores["train_score"])
+        train_scores.append(avg_train)
+        avg_test = np.mean(scores["test_score"])
+        test_scores.append(avg_test)
+
+    ax.plot(train_sizes, train_scores, lw=2, color='b', label="train scores")
+    ax.plot(train_sizes, test_scores, lw=2, color='r', label="test scores")
+
+    ax.legend(loc="lower right")
+
+    save_figure(fig, clf_name, dataset_name, "score_vs_train_size")
+
+
 def analyze_clf(dataset_name,
                 clf_name,
                 labels,
                 clf,
                 train_size=TRAIN_SIZE,
-                data_preprocessor=None):
+                data_preprocessor=None,
+                train_max=0.9):
+
+    plot_performance_vs_train_size(dataset_name,
+                                   clf_name,
+                                   clf,
+                                   data_preprocessor,
+                                   train_max=train_max)
+
     x_train, x_test, y_train, y_test = get_dataset_train_test(dataset_name,
                                                               train_size=train_size,
                                                               random_state=RANDOM_STATE,

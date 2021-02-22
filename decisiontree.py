@@ -1,4 +1,4 @@
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_score, StratifiedShuffleSplit
 from sklearn.neighbors import NeighborhoodComponentsAnalysis
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
@@ -6,10 +6,15 @@ from sklearn.tree import DecisionTreeClassifier
 
 from analysis import analyze_clf
 from datareader import load_preprocessor, load_study
-from trainer import generate_credit_card_study, generate_heart_study, RANDOM_STATE
+from trainer import generate_credit_card_study, generate_heart_study, RANDOM_STATE, TRAIN_SIZE
 
 
-def objective(trial, x, y, scoring=None):
+def objective(trial, x, y, train_size=TRAIN_SIZE, scoring=None):
+    cv_folds = 5
+    ss = StratifiedShuffleSplit(train_size=train_size,
+                                random_state=RANDOM_STATE,
+                                n_splits=cv_folds)
+
     criterion = trial.suggest_categorical("criterion", ["gini", "entropy"])
     max_depth = trial.suggest_int("max_depth", 6, 32)
     min_samples_split = trial.suggest_float("min_samples_split", 0.01, 0.1)
@@ -26,7 +31,7 @@ def objective(trial, x, y, scoring=None):
                                 class_weight="balanced",
                                 random_state=RANDOM_STATE)
 
-    score = cross_val_score(dt, x, y, n_jobs=-1, cv=5, scoring=scoring)
+    score = cross_val_score(dt, x, y, n_jobs=-1, cv=ss, scoring=scoring)
     return score.mean()
 
 
@@ -64,21 +69,30 @@ def generate_dt():
     nca_h = make_pipeline(StandardScaler(),
                           NeighborhoodComponentsAnalysis(n_components=12,
                                                          random_state=RANDOM_STATE))
-    generate_heart_study(objective, "dt", 300, data_preprocessor=nca_h)
+    generate_heart_study(objective,
+                         "dt",
+                         300,
+                         data_preprocessor=nca_h)
 
     nca_cc = make_pipeline(StandardScaler(),
                            NeighborhoodComponentsAnalysis(n_components=8,
                                                           random_state=RANDOM_STATE))
-    generate_credit_card_study(objective, "dt", 75, data_preprocessor=nca_cc)
+    generate_credit_card_study(objective,
+                               "dt",
+                               75,
+                               data_preprocessor=nca_cc,
+                               train_size=0.2)
 
 
 def validate_dt():
+    print("Validating Decision tree for Heart Failure")
     analyze_clf(dataset_name="heart",
                 clf_name="dt",
                 labels=["Healthy", "Failure"],
                 clf=load_dt_heart_model(),
                 data_preprocessor=load_dt_heart_preprocessor())
 
+    print("Validating Decision tree for Credit Card Fraud")
     analyze_clf(dataset_name="credit_card",
                 clf_name="dt",
                 labels=["No Fraud", "Fraud"],

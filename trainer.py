@@ -10,46 +10,20 @@ TRAIN_SIZE = 0.4
 N_TRIALS = 100
 
 
-def generate_studies(objective_fn,
-                     clf_name,
-                     n_trials=N_TRIALS,
-                     scoring=make_scorer(roc_auc_score),
-                     heart_preprocessor=None,
-                     credit_card_preprocessor=None):
-    generate_heart_study(objective_fn,
-                         clf_name,
-                         n_trials,
-                         scoring,
-                         data_preprocessor=heart_preprocessor)
-    generate_credit_card_study(objective_fn,
-                               clf_name,
-                               n_trials,
-                               scoring,
-                               data_preprocessor=credit_card_preprocessor)
-
-
 def generate_generic_study(dataset_name,
                            objective_fn,
                            clf_name,
                            n_trials=N_TRIALS,
                            scoring=make_scorer(roc_auc_score),
-                           percent_sample=1.0,
+                           train_size=TRAIN_SIZE,
                            data_preprocessor=None):
     x, _, y, _ = get_dataset_train_test(dataset_name,
                                         train_size=TRAIN_SIZE,
                                         random_state=RANDOM_STATE,
                                         data_preprocessor=data_preprocessor)
 
-    if percent_sample < 1:
-        ss = StratifiedShuffleSplit(train_size=percent_sample,
-                                    random_state=RANDOM_STATE)
-
-        sample_ind, _ = list(ss.split(x, y))[0]
-        x = x[sample_ind]
-        y = y[sample_ind]
-
     def objective(trial):
-        return objective_fn(trial, x, y, scoring)
+        return objective_fn(trial, x, y, train_size, scoring)
 
     study = optuna.create_study(direction="maximize")
     study.optimize(objective, n_trials=n_trials, n_jobs=-1)
@@ -64,14 +38,14 @@ def generate_heart_study(objective_fn,
                          clf_name,
                          n_trials=N_TRIALS,
                          scoring=make_scorer(roc_auc_score),
-                         percent_sample=1.0,
+                         train_size=TRAIN_SIZE,
                          data_preprocessor=None):
     generate_generic_study("heart",
                            objective_fn,
                            clf_name,
                            n_trials,
                            scoring,
-                           percent_sample,
+                           train_size,
                            data_preprocessor)
 
 
@@ -79,12 +53,12 @@ def generate_credit_card_study(objective_fn,
                                clf_name,
                                n_trials=N_TRIALS,
                                scoring=make_scorer(roc_auc_score),
-                               percent_sample=1.0,
+                               train_size=TRAIN_SIZE,
                                data_preprocessor=None):
     generate_generic_study("credit_card",
                            objective_fn,
                            clf_name,
                            n_trials,
                            scoring,
-                           percent_sample,
+                           train_size,
                            data_preprocessor)

@@ -18,24 +18,11 @@ def get_dataset_train_test(dataset_name,
                            random_state=None,
                            data_preprocessor=None):
     if dataset_name == "heart":
-        x, y = get_heart_xy()
+        x, y = get_heart_xy(data_preprocessor)
     elif dataset_name == "credit_card":
-        x, y = get_credit_card_xy()
+        x, y = get_credit_card_xy(data_preprocessor)
     else:
         assert False
-
-    if data_preprocessor is not None:
-        try:
-            x = data_preprocessor.transform(x)
-        except NotFittedError:
-            x_fit, y_fit = x, y
-
-            # Decrease sample size if required so we don't run out of machine memory
-            if np.prod(x.shape) > MAX_TRANSFORM_DATA:
-                x_fit, y_fit = sample(x, y)
-
-            data_preprocessor.fit(x_fit, y_fit)
-            x = data_preprocessor.transform(x)
 
     return train_test_split(x,
                             y,
@@ -52,21 +39,49 @@ def sample(x, y):
     return x[fit_ind], y[fit_ind]
 
 
-def get_heart_xy() -> (np.ndarray, np.ndarray):
+def get_heart_xy(data_preprocessor=None) -> (np.ndarray, np.ndarray):
     heart_data = pd.read_csv('data/heart_cleveland_upload.csv')
     x = heart_data.drop(columns=['condition']).to_numpy()
     y = heart_data['condition'].to_numpy()
     x = np.ascontiguousarray(x)
     y = np.ascontiguousarray(y)
+
+    if data_preprocessor is not None:
+        try:
+            x = data_preprocessor.transform(x)
+        except NotFittedError:
+            x_fit, y_fit = x, y
+
+            # Decrease sample size if required so we don't run out of machine memory
+            if np.prod(x.shape) > MAX_TRANSFORM_DATA:
+                x_fit, y_fit = sample(x, y)
+
+            data_preprocessor.fit(x_fit, y_fit)
+            x = data_preprocessor.transform(x)
+
     return x, y
 
 
-def get_credit_card_xy() -> (np.ndarray, np.ndarray):
+def get_credit_card_xy(data_preprocessor=None) -> (np.ndarray, np.ndarray):
     credit_card_data = pd.read_csv('data/creditcard.csv')
     x = credit_card_data.drop(columns=['Time', 'Class']).to_numpy()
     y = credit_card_data['Class'].to_numpy()
     x = np.ascontiguousarray(x)
     y = np.ascontiguousarray(y)
+
+    if data_preprocessor is not None:
+        try:
+            x = data_preprocessor.transform(x)
+        except NotFittedError:
+            x_fit, y_fit = x, y
+
+            # Decrease sample size if required so we don't run out of machine memory
+            if np.prod(x.shape) > MAX_TRANSFORM_DATA:
+                x_fit, y_fit = sample(x, y)
+
+            data_preprocessor.fit(x_fit, y_fit)
+            x = data_preprocessor.transform(x)
+
     return x, y
 
 

@@ -1,5 +1,5 @@
 from sklearn.ensemble import AdaBoostClassifier
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_score, StratifiedShuffleSplit
 from sklearn.neighbors import NeighborhoodComponentsAnalysis
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
@@ -7,7 +7,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 from analysis import analyze_clf
 from datareader import load_preprocessor, load_study
-from trainer import generate_credit_card_study, generate_heart_study, RANDOM_STATE
+from trainer import generate_credit_card_study, generate_heart_study, RANDOM_STATE, TRAIN_SIZE
 
 
 def boosted_decision_tree(criterion,
@@ -33,7 +33,12 @@ def boosted_decision_tree(criterion,
     return booster
 
 
-def objective(trial, x, y, scoring=None):
+def objective(trial, x, y, train_size=TRAIN_SIZE, scoring=None):
+    cv_folds = 5
+    ss = StratifiedShuffleSplit(train_size=train_size,
+                                random_state=RANDOM_STATE,
+                                n_splits=cv_folds)
+
     criterion = trial.suggest_categorical("criterion", ["gini", "entropy"])
     max_depth = trial.suggest_int("max_depth", 3, 7)
     min_samples_split = trial.suggest_float("min_samples_split", 1e-3, 1e-1)
@@ -53,7 +58,7 @@ def objective(trial, x, y, scoring=None):
                                 n_estimators=n_estimators,
                                 learning_rate=learning_rate)
 
-    score = cross_val_score(clf, x, y, n_jobs=-1, cv=5, scoring=scoring)
+    score = cross_val_score(clf, x, y, n_jobs=-1, cv=ss, scoring=scoring)
     return score.mean()
 
 
@@ -101,17 +106,19 @@ def generate_boosting():
     generate_credit_card_study(objective,
                                "boosting",
                                75,
-                               percent_sample=0.25,
+                               train_size=0.2,
                                data_preprocessor=nca_cc)
 
 
 def validate_boosting():
+    print("Validating Boosting for Heart Failure")
     analyze_clf(dataset_name="heart",
                 clf_name="boosting",
                 labels=["Healthy", "Failure"],
                 clf=load_boosting_heart_model(),
                 data_preprocessor=load_dt_heart_preprocessor())
 
+    print("Validating Boosting for Credit Card Fraud")
     analyze_clf(dataset_name="credit_card",
                 clf_name="boosting",
                 labels=["No Fraud", "Fraud"],

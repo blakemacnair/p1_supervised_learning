@@ -1,19 +1,21 @@
-import numpy as np
-
 from sklearn.decomposition import PCA
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_score, StratifiedShuffleSplit
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import LinearSVC, NuSVC, SVC
 
 from analysis import analyze_clf
 from datareader import load_preprocessor, load_study
-from trainer import generate_credit_card_study, generate_heart_study, RANDOM_STATE
+from trainer import generate_credit_card_study, generate_heart_study, RANDOM_STATE, TRAIN_SIZE
 
 
-def objective(trial, x, y, scoring=None):
+def objective(trial, x, y, train_size=TRAIN_SIZE, scoring=None):
+    cv_folds = 5
+    ss = StratifiedShuffleSplit(train_size=train_size,
+                                random_state=RANDOM_STATE,
+                                n_splits=cv_folds)
     params = {
-        "clf_type" : "svc"  # trial.suggest_categorical("clf_type", ["svc", "linear"]),
+        "clf_type": "svc"  # trial.suggest_categorical("clf_type", ["svc", "linear"]),
     }
 
     if params["clf_type"] == "svc":
@@ -46,7 +48,7 @@ def objective(trial, x, y, scoring=None):
                             x,
                             y,
                             n_jobs=-1,
-                            cv=5,
+                            cv=ss,
                             scoring=scoring)
     return score.mean()
 
@@ -111,28 +113,30 @@ def load_svm_credit_card_preprocessor():
 
 def generate_svm():
     prep_h = make_pipeline(StandardScaler(),
-                         PCA(n_components="mle", random_state=RANDOM_STATE))
+                           PCA(n_components="mle", random_state=RANDOM_STATE))
     generate_heart_study(objective,
                          "svm",
                          300,
                          data_preprocessor=prep_h)
 
     prep_cc = make_pipeline(StandardScaler(),
-                         PCA(n_components=14, random_state=RANDOM_STATE))
+                            PCA(n_components=14, random_state=RANDOM_STATE))
     generate_credit_card_study(objective,
                                "svm",
                                75,
-                               percent_sample=0.1,
+                               train_size=0.1,
                                data_preprocessor=prep_cc)
 
 
 def validate_svm():
+    print("Validating Support Vector Machine for Heart Failure")
     analyze_clf(dataset_name="heart",
                 clf_name="svm",
                 labels=["Healthy", "Failure"],
                 clf=load_svm_heart_model(),
                 data_preprocessor=load_svm_heart_preprocessor())
 
+    print("Validating Support Vector Machine for Credit Card Fraud")
     analyze_clf(dataset_name="credit_card",
                 clf_name="svm",
                 labels=["No Fraud", "Fraud"],
