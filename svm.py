@@ -109,30 +109,38 @@ def load_svm_credit_card_preprocessor():
     return load_preprocessor("svm", "credit_card")
 
 
-if __name__ == "__main__":
-    # Study Heart Failure dataset with SVM
-    prep = make_pipeline(StandardScaler(),
+def generate_svm():
+    prep_h = make_pipeline(StandardScaler(),
                          PCA(n_components="mle", random_state=RANDOM_STATE))
-    generate_heart_study(objective, "svm", 300, data_preprocessor=prep)
+    generate_heart_study(objective,
+                         "svm",
+                         300,
+                         data_preprocessor=prep_h)
 
+    prep_cc = make_pipeline(StandardScaler(),
+                         PCA(n_components=14, random_state=RANDOM_STATE))
+    generate_credit_card_study(objective,
+                               "svm",
+                               75,
+                               percent_sample=0.1,
+                               data_preprocessor=prep_cc)
+
+
+def validate_svm():
     analyze_clf(dataset_name="heart",
                 name="Heart Failure",
                 labels=["Healthy", "Failure"],
                 clf=load_svm_heart_model(),
                 data_preprocessor=load_svm_heart_preprocessor())
 
-    # Study Credit Card dataset with SVM
-    # prep = make_pipeline(StandardScaler(),
-    #                      PCA(n_components=14, random_state=RANDOM_STATE))
-    # generate_credit_card_study(objective,
-    #                            "svm",
-    #                            75,
-    #                            percent_sample=0.1,
-    #                            data_preprocessor=prep)
-    #
-    # analyze_clf(dataset_name="credit_card",
-    #             name="Credit Card Fraud",
-    #             labels=["No Fraud", "Fraud"],
-    #             clf=load_svm_credit_card_model(),
-    #             train_size=0.05,
-    #             data_preprocessor=load_svm_credit_card_preprocessor())
+    analyze_clf(dataset_name="credit_card",
+                name="Credit Card Fraud",
+                labels=["No Fraud", "Fraud"],
+                clf=load_svm_credit_card_model(),
+                train_size=0.05,
+                data_preprocessor=load_svm_credit_card_preprocessor())
+
+
+if __name__ == "__main__":
+    generate_svm()
+    validate_svm()
