@@ -55,6 +55,8 @@ def get_heart_xy() -> (np.ndarray, np.ndarray):
     heart_data = pd.read_csv('data/heart_cleveland_upload.csv')
     x = heart_data.drop(columns=['condition']).to_numpy()
     y = heart_data['condition'].to_numpy()
+    x = np.ascontiguousarray(x)
+    y = np.ascontiguousarray(y)
     return x, y
 
 
@@ -62,6 +64,8 @@ def get_credit_card_xy() -> (np.ndarray, np.ndarray):
     credit_card_data = pd.read_csv('data/creditcard.csv')
     x = credit_card_data.drop(columns=['Time', 'Class']).to_numpy()
     y = credit_card_data['Class'].to_numpy()
+    x = np.ascontiguousarray(x)
+    y = np.ascontiguousarray(y)
     return x, y
 
 

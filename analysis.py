@@ -89,9 +89,10 @@ def analyze_clf(dataset_name,
                 name,
                 labels,
                 clf,
+                train_size=TRAIN_SIZE,
                 data_preprocessor=None):
     x_train, x_test, y_train, y_test = get_dataset_train_test(dataset_name,
-                                                              train_size=TRAIN_SIZE,
+                                                              train_size=train_size,
                                                               random_state=RANDOM_STATE,
                                                               data_preprocessor=data_preprocessor)
     cross_validate_and_analyze(
