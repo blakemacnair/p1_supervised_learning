@@ -61,11 +61,11 @@ def load_nn_credit_card_preprocessor():
 
 def generate_nn():
     prep_h = make_pipeline(StandardScaler(),
-                         PCA(n_components="mle", random_state=RANDOM_STATE))
+                           PCA(n_components="mle", random_state=RANDOM_STATE))
     generate_heart_study(objective, "nn", 300, data_preprocessor=prep_h)
 
     prep_cc = make_pipeline(StandardScaler(),
-                         PCA(n_components="mle", random_state=RANDOM_STATE))
+                            PCA(n_components="mle", random_state=RANDOM_STATE))
     generate_credit_card_study(objective,
                                "nn",
                                75,
@@ -75,13 +75,13 @@ def generate_nn():
 
 def validate_nn():
     analyze_clf(dataset_name="heart",
-                name="Heart Failure",
+                clf_name="nn",
                 labels=["Healthy", "Failure"],
                 clf=load_nn_heart_model(),
                 data_preprocessor=load_nn_heart_preprocessor())
 
     analyze_clf(dataset_name="credit_card",
-                name="Credit Card Fraud",
+                clf_name="nn",
                 labels=["No Fraud", "Fraud"],
                 clf=load_nn_credit_card_model(),
                 data_preprocessor=load_nn_credit_card_preprocessor())

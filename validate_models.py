@@ -7,6 +7,6 @@ from neural_net import validate_nn
 if __name__ == "__main__":
     validate_dt()
     validate_boosting()
-    # validate_knn()
-    # validate_svm()
-    # validate_nn()
+    validate_knn()
+    validate_svm()
+    validate_nn()

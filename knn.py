@@ -82,13 +82,13 @@ def generate_knn():
 
 def validate_knn():
     analyze_clf(dataset_name="heart",
-                name="Heart Failure",
+                clf_name="knn",
                 labels=["Healthy", "Failure"],
                 clf=load_knn_heart_model(),
                 data_preprocessor=load_knn_heart_preprocessor())
 
     analyze_clf(dataset_name="credit_card",
-                name="Credit Card Fraud",
+                clf_name="knn",
                 labels=["No Fraud", "Fraud"],
                 clf=load_knn_credit_card_model(),
                 data_preprocessor=load_knn_credit_card_preprocessor())

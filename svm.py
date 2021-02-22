@@ -128,13 +128,13 @@ def generate_svm():
 
 def validate_svm():
     analyze_clf(dataset_name="heart",
-                name="Heart Failure",
+                clf_name="svm",
                 labels=["Healthy", "Failure"],
                 clf=load_svm_heart_model(),
                 data_preprocessor=load_svm_heart_preprocessor())
 
     analyze_clf(dataset_name="credit_card",
-                name="Credit Card Fraud",
+                clf_name="svm",
                 labels=["No Fraud", "Fraud"],
                 clf=load_svm_credit_card_model(),
                 train_size=0.05,
